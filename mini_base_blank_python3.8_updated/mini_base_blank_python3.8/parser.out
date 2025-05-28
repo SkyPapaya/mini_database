@@ -11,7 +11,7 @@ Rule 1     Query -> SELECT SelList FROM FromList WHERE Cond
 Rule 2     Query -> SELECT SelList FROM FromList
 Rule 3     SelList -> TCNAME COMMA SelList
 Rule 4     SelList -> TCNAME
-Rule 5     SelList -> EQX
+Rule 5     SelList -> ASTERISK
 Rule 6     FromList -> TCNAME COMMA FromList
 Rule 7     FromList -> TCNAME
 Rule 8     Cond -> SimpleCond AND Cond
@@ -31,9 +31,10 @@ Rule 20    Value -> STRING_CONST
 Terminals, with rules where they appear
 
 AND                  : 8
+ASTERISK             : 5
 COMMA                : 3 6
 CONSTANT             : 19
-EQX                  : 5 13
+EQX                  : 13
 FROM                 : 1 2
 GE                   : 18
 GT                   : 16
@@ -84,10 +85,10 @@ state 2
     (2) Query -> SELECT . SelList FROM FromList
     (3) SelList -> . TCNAME COMMA SelList
     (4) SelList -> . TCNAME
-    (5) SelList -> . EQX
+    (5) SelList -> . ASTERISK
 
     TCNAME          shift and go to state 4
-    EQX             shift and go to state 5
+    ASTERISK        shift and go to state 5
 
     SelList                        shift and go to state 3
 
@@ -110,9 +111,9 @@ state 4
 
 state 5
 
-    (5) SelList -> EQX .
+    (5) SelList -> ASTERISK .
 
-    FROM            reduce using rule 5 (SelList -> EQX .)
+    FROM            reduce using rule 5 (SelList -> ASTERISK .)
 
 
 state 6
@@ -131,10 +132,10 @@ state 7
     (3) SelList -> TCNAME COMMA . SelList
     (3) SelList -> . TCNAME COMMA SelList
     (4) SelList -> . TCNAME
-    (5) SelList -> . EQX
+    (5) SelList -> . ASTERISK
 
     TCNAME          shift and go to state 4
-    EQX             shift and go to state 5
+    ASTERISK        shift and go to state 5
 
     SelList                        shift and go to state 10
 

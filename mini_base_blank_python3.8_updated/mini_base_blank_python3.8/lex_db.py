@@ -12,11 +12,13 @@ import common_db
 
 # Haomin Wang: Added LPARENT, RPARENT for potential future use (e.g. complex conditions)
 # Haomin Wang: Added more specific operator tokens like NE, LT, GT, LE, GE for richer comparisons
+# Haomin Wang: Added ASTERISK for SELECT *
 tokens=('SELECT','FROM','WHERE','AND', 'OR', # Haomin Wang: Added OR
         'TCNAME','EQX', 'NE', 'LT', 'GT', 'LE', 'GE', # Haomin Wang: Added comparison operators
         'COMMA','CONSTANT','SPACE',
         'LPARENT', 'RPARENT', # Haomin Wang: Added parentheses
-        'STRING_CONST' # Haomin Wang: Added specific string constant
+        'STRING_CONST', # Haomin Wang: Added specific string constant
+        'ASTERISK' # Haomin Wang: Added token for *
         )
 
 # the following is to defining rules for each token
@@ -44,6 +46,11 @@ def t_AND(t):
 def t_OR(t):
     r'or' # Haomin Wang: Made case-insensitive
     t.type = 'OR'
+    return t
+
+# Haomin Wang: Rule for ASTERISK token *
+def t_ASTERISK(t):
+    r'\*'
     return t
 
 # Haomin Wang: General identifier, could be table name or column name. Parser will differentiate.
