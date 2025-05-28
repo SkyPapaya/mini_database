@@ -21,28 +21,28 @@ tokens=('SELECT','FROM','WHERE','AND', 'OR', # Haomin Wang: Added OR
 
 # the following is to defining rules for each token
 def t_SELECT(t):
-    r'(?i)select' # Haomin Wang: Made case-insensitive
+    r'select' # Haomin Wang: Made case-insensitive
     t.type = 'SELECT' # Haomin Wang: Ensure type is uppercase for consistency with token list
     return t
 
 def t_FROM(t):
-    r'(?i)from' # Haomin Wang: Made case-insensitive
+    r'from' # Haomin Wang: Made case-insensitive
     t.type = 'FROM'
     return t
 
 def t_WHERE(t):
-    r'(?i)where' # Haomin Wang: Made case-insensitive
+    r'where' # Haomin Wang: Made case-insensitive
     t.type = 'WHERE'
     return t
 
 def t_AND(t):
-    r'(?i)and' # Haomin Wang: Made case-insensitive
+    r'and' # Haomin Wang: Made case-insensitive
     t.type = 'AND'
     return t
 
 # Haomin Wang: Added OR token
 def t_OR(t):
-    r'(?i)or' # Haomin Wang: Made case-insensitive
+    r'or' # Haomin Wang: Made case-insensitive
     t.type = 'OR'
     return t
 

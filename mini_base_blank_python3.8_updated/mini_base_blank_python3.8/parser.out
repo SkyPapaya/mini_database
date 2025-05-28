@@ -2,53 +2,75 @@ Created by PLY version 3.11 (http://www.dabeaz.com/ply)
 
 Unused terminals:
 
-    AND
     SPACE
 
 Grammar
 
 Rule 0     S' -> Query
-Rule 1     Query -> SFW
-Rule 2     SFW -> SELECT SelList FROM FromList WHERE Cond
+Rule 1     Query -> SELECT SelList FROM FromList WHERE Cond
+Rule 2     Query -> SELECT SelList FROM FromList
 Rule 3     SelList -> TCNAME COMMA SelList
 Rule 4     SelList -> TCNAME
-Rule 5     FromList -> TCNAME COMMA FromList
-Rule 6     FromList -> TCNAME
-Rule 7     Cond -> TCNAME EQX CONSTANT
+Rule 5     SelList -> EQX
+Rule 6     FromList -> TCNAME COMMA FromList
+Rule 7     FromList -> TCNAME
+Rule 8     Cond -> SimpleCond AND Cond
+Rule 9     Cond -> SimpleCond OR Cond
+Rule 10    Cond -> SimpleCond
+Rule 11    Cond -> LPARENT Cond RPARENT
+Rule 12    SimpleCond -> TCNAME CompareOp Value
+Rule 13    CompareOp -> EQX
+Rule 14    CompareOp -> NE
+Rule 15    CompareOp -> LT
+Rule 16    CompareOp -> GT
+Rule 17    CompareOp -> LE
+Rule 18    CompareOp -> GE
+Rule 19    Value -> CONSTANT
+Rule 20    Value -> STRING_CONST
 
 Terminals, with rules where they appear
 
-AND                  : 
-COMMA                : 3 5
-CONSTANT             : 7
-EQX                  : 7
-FROM                 : 2
-SELECT               : 2
+AND                  : 8
+COMMA                : 3 6
+CONSTANT             : 19
+EQX                  : 5 13
+FROM                 : 1 2
+GE                   : 18
+GT                   : 16
+LE                   : 17
+LPARENT              : 11
+LT                   : 15
+NE                   : 14
+OR                   : 9
+RPARENT              : 11
+SELECT               : 1 2
 SPACE                : 
-TCNAME               : 3 4 5 6 7
-WHERE                : 2
+STRING_CONST         : 20
+TCNAME               : 3 4 6 7 12
+WHERE                : 1
 error                : 
 
 Nonterminals, with rules where they appear
 
-Cond                 : 2
-FromList             : 2 5
+CompareOp            : 12
+Cond                 : 1 8 9 11
+FromList             : 1 2 6
 Query                : 0
-SFW                  : 1
-SelList              : 2 3
+SelList              : 1 2 3
+SimpleCond           : 8 9 10
+Value                : 12
 
 Parsing method: LALR
 
 state 0
 
     (0) S' -> . Query
-    (1) Query -> . SFW
-    (2) SFW -> . SELECT SelList FROM FromList WHERE Cond
+    (1) Query -> . SELECT SelList FROM FromList WHERE Cond
+    (2) Query -> . SELECT SelList FROM FromList
 
-    SELECT          shift and go to state 3
+    SELECT          shift and go to state 2
 
     Query                          shift and go to state 1
-    SFW                            shift and go to state 2
 
 state 1
 
@@ -58,29 +80,26 @@ state 1
 
 state 2
 
-    (1) Query -> SFW .
+    (1) Query -> SELECT . SelList FROM FromList WHERE Cond
+    (2) Query -> SELECT . SelList FROM FromList
+    (3) SelList -> . TCNAME COMMA SelList
+    (4) SelList -> . TCNAME
+    (5) SelList -> . EQX
 
-    $end            reduce using rule 1 (Query -> SFW .)
+    TCNAME          shift and go to state 4
+    EQX             shift and go to state 5
 
+    SelList                        shift and go to state 3
 
 state 3
 
-    (2) SFW -> SELECT . SelList FROM FromList WHERE Cond
-    (3) SelList -> . TCNAME COMMA SelList
-    (4) SelList -> . TCNAME
-
-    TCNAME          shift and go to state 5
-
-    SelList                        shift and go to state 4
-
-state 4
-
-    (2) SFW -> SELECT SelList . FROM FromList WHERE Cond
+    (1) Query -> SELECT SelList . FROM FromList WHERE Cond
+    (2) Query -> SELECT SelList . FROM FromList
 
     FROM            shift and go to state 6
 
 
-state 5
+state 4
 
     (3) SelList -> TCNAME . COMMA SelList
     (4) SelList -> TCNAME .
@@ -89,11 +108,19 @@ state 5
     FROM            reduce using rule 4 (SelList -> TCNAME .)
 
 
+state 5
+
+    (5) SelList -> EQX .
+
+    FROM            reduce using rule 5 (SelList -> EQX .)
+
+
 state 6
 
-    (2) SFW -> SELECT SelList FROM . FromList WHERE Cond
-    (5) FromList -> . TCNAME COMMA FromList
-    (6) FromList -> . TCNAME
+    (1) Query -> SELECT SelList FROM . FromList WHERE Cond
+    (2) Query -> SELECT SelList FROM . FromList
+    (6) FromList -> . TCNAME COMMA FromList
+    (7) FromList -> . TCNAME
 
     TCNAME          shift and go to state 9
 
@@ -104,25 +131,30 @@ state 7
     (3) SelList -> TCNAME COMMA . SelList
     (3) SelList -> . TCNAME COMMA SelList
     (4) SelList -> . TCNAME
+    (5) SelList -> . EQX
 
-    TCNAME          shift and go to state 5
+    TCNAME          shift and go to state 4
+    EQX             shift and go to state 5
 
     SelList                        shift and go to state 10
 
 state 8
 
-    (2) SFW -> SELECT SelList FROM FromList . WHERE Cond
+    (1) Query -> SELECT SelList FROM FromList . WHERE Cond
+    (2) Query -> SELECT SelList FROM FromList .
 
     WHERE           shift and go to state 11
+    $end            reduce using rule 2 (Query -> SELECT SelList FROM FromList .)
 
 
 state 9
 
-    (5) FromList -> TCNAME . COMMA FromList
-    (6) FromList -> TCNAME .
+    (6) FromList -> TCNAME . COMMA FromList
+    (7) FromList -> TCNAME .
 
     COMMA           shift and go to state 12
-    WHERE           reduce using rule 6 (FromList -> TCNAME .)
+    WHERE           reduce using rule 7 (FromList -> TCNAME .)
+    $end            reduce using rule 7 (FromList -> TCNAME .)
 
 
 state 10
@@ -134,54 +166,236 @@ state 10
 
 state 11
 
-    (2) SFW -> SELECT SelList FROM FromList WHERE . Cond
-    (7) Cond -> . TCNAME EQX CONSTANT
+    (1) Query -> SELECT SelList FROM FromList WHERE . Cond
+    (8) Cond -> . SimpleCond AND Cond
+    (9) Cond -> . SimpleCond OR Cond
+    (10) Cond -> . SimpleCond
+    (11) Cond -> . LPARENT Cond RPARENT
+    (12) SimpleCond -> . TCNAME CompareOp Value
 
-    TCNAME          shift and go to state 14
+    LPARENT         shift and go to state 15
+    TCNAME          shift and go to state 16
 
     Cond                           shift and go to state 13
+    SimpleCond                     shift and go to state 14
 
 state 12
 
-    (5) FromList -> TCNAME COMMA . FromList
-    (5) FromList -> . TCNAME COMMA FromList
-    (6) FromList -> . TCNAME
+    (6) FromList -> TCNAME COMMA . FromList
+    (6) FromList -> . TCNAME COMMA FromList
+    (7) FromList -> . TCNAME
 
     TCNAME          shift and go to state 9
 
-    FromList                       shift and go to state 15
+    FromList                       shift and go to state 17
 
 state 13
 
-    (2) SFW -> SELECT SelList FROM FromList WHERE Cond .
+    (1) Query -> SELECT SelList FROM FromList WHERE Cond .
 
-    $end            reduce using rule 2 (SFW -> SELECT SelList FROM FromList WHERE Cond .)
+    $end            reduce using rule 1 (Query -> SELECT SelList FROM FromList WHERE Cond .)
 
 
 state 14
 
-    (7) Cond -> TCNAME . EQX CONSTANT
+    (8) Cond -> SimpleCond . AND Cond
+    (9) Cond -> SimpleCond . OR Cond
+    (10) Cond -> SimpleCond .
 
-    EQX             shift and go to state 16
+    AND             shift and go to state 18
+    OR              shift and go to state 19
+    $end            reduce using rule 10 (Cond -> SimpleCond .)
+    RPARENT         reduce using rule 10 (Cond -> SimpleCond .)
 
 
 state 15
 
-    (5) FromList -> TCNAME COMMA FromList .
+    (11) Cond -> LPARENT . Cond RPARENT
+    (8) Cond -> . SimpleCond AND Cond
+    (9) Cond -> . SimpleCond OR Cond
+    (10) Cond -> . SimpleCond
+    (11) Cond -> . LPARENT Cond RPARENT
+    (12) SimpleCond -> . TCNAME CompareOp Value
 
-    WHERE           reduce using rule 5 (FromList -> TCNAME COMMA FromList .)
+    LPARENT         shift and go to state 15
+    TCNAME          shift and go to state 16
 
+    Cond                           shift and go to state 20
+    SimpleCond                     shift and go to state 14
 
 state 16
 
-    (7) Cond -> TCNAME EQX . CONSTANT
+    (12) SimpleCond -> TCNAME . CompareOp Value
+    (13) CompareOp -> . EQX
+    (14) CompareOp -> . NE
+    (15) CompareOp -> . LT
+    (16) CompareOp -> . GT
+    (17) CompareOp -> . LE
+    (18) CompareOp -> . GE
 
-    CONSTANT        shift and go to state 17
+    EQX             shift and go to state 22
+    NE              shift and go to state 23
+    LT              shift and go to state 24
+    GT              shift and go to state 25
+    LE              shift and go to state 26
+    GE              shift and go to state 27
 
+    CompareOp                      shift and go to state 21
 
 state 17
 
-    (7) Cond -> TCNAME EQX CONSTANT .
+    (6) FromList -> TCNAME COMMA FromList .
 
-    $end            reduce using rule 7 (Cond -> TCNAME EQX CONSTANT .)
+    WHERE           reduce using rule 6 (FromList -> TCNAME COMMA FromList .)
+    $end            reduce using rule 6 (FromList -> TCNAME COMMA FromList .)
+
+
+state 18
+
+    (8) Cond -> SimpleCond AND . Cond
+    (8) Cond -> . SimpleCond AND Cond
+    (9) Cond -> . SimpleCond OR Cond
+    (10) Cond -> . SimpleCond
+    (11) Cond -> . LPARENT Cond RPARENT
+    (12) SimpleCond -> . TCNAME CompareOp Value
+
+    LPARENT         shift and go to state 15
+    TCNAME          shift and go to state 16
+
+    SimpleCond                     shift and go to state 14
+    Cond                           shift and go to state 28
+
+state 19
+
+    (9) Cond -> SimpleCond OR . Cond
+    (8) Cond -> . SimpleCond AND Cond
+    (9) Cond -> . SimpleCond OR Cond
+    (10) Cond -> . SimpleCond
+    (11) Cond -> . LPARENT Cond RPARENT
+    (12) SimpleCond -> . TCNAME CompareOp Value
+
+    LPARENT         shift and go to state 15
+    TCNAME          shift and go to state 16
+
+    SimpleCond                     shift and go to state 14
+    Cond                           shift and go to state 29
+
+state 20
+
+    (11) Cond -> LPARENT Cond . RPARENT
+
+    RPARENT         shift and go to state 30
+
+
+state 21
+
+    (12) SimpleCond -> TCNAME CompareOp . Value
+    (19) Value -> . CONSTANT
+    (20) Value -> . STRING_CONST
+
+    CONSTANT        shift and go to state 32
+    STRING_CONST    shift and go to state 33
+
+    Value                          shift and go to state 31
+
+state 22
+
+    (13) CompareOp -> EQX .
+
+    CONSTANT        reduce using rule 13 (CompareOp -> EQX .)
+    STRING_CONST    reduce using rule 13 (CompareOp -> EQX .)
+
+
+state 23
+
+    (14) CompareOp -> NE .
+
+    CONSTANT        reduce using rule 14 (CompareOp -> NE .)
+    STRING_CONST    reduce using rule 14 (CompareOp -> NE .)
+
+
+state 24
+
+    (15) CompareOp -> LT .
+
+    CONSTANT        reduce using rule 15 (CompareOp -> LT .)
+    STRING_CONST    reduce using rule 15 (CompareOp -> LT .)
+
+
+state 25
+
+    (16) CompareOp -> GT .
+
+    CONSTANT        reduce using rule 16 (CompareOp -> GT .)
+    STRING_CONST    reduce using rule 16 (CompareOp -> GT .)
+
+
+state 26
+
+    (17) CompareOp -> LE .
+
+    CONSTANT        reduce using rule 17 (CompareOp -> LE .)
+    STRING_CONST    reduce using rule 17 (CompareOp -> LE .)
+
+
+state 27
+
+    (18) CompareOp -> GE .
+
+    CONSTANT        reduce using rule 18 (CompareOp -> GE .)
+    STRING_CONST    reduce using rule 18 (CompareOp -> GE .)
+
+
+state 28
+
+    (8) Cond -> SimpleCond AND Cond .
+
+    $end            reduce using rule 8 (Cond -> SimpleCond AND Cond .)
+    RPARENT         reduce using rule 8 (Cond -> SimpleCond AND Cond .)
+
+
+state 29
+
+    (9) Cond -> SimpleCond OR Cond .
+
+    $end            reduce using rule 9 (Cond -> SimpleCond OR Cond .)
+    RPARENT         reduce using rule 9 (Cond -> SimpleCond OR Cond .)
+
+
+state 30
+
+    (11) Cond -> LPARENT Cond RPARENT .
+
+    $end            reduce using rule 11 (Cond -> LPARENT Cond RPARENT .)
+    RPARENT         reduce using rule 11 (Cond -> LPARENT Cond RPARENT .)
+
+
+state 31
+
+    (12) SimpleCond -> TCNAME CompareOp Value .
+
+    AND             reduce using rule 12 (SimpleCond -> TCNAME CompareOp Value .)
+    OR              reduce using rule 12 (SimpleCond -> TCNAME CompareOp Value .)
+    $end            reduce using rule 12 (SimpleCond -> TCNAME CompareOp Value .)
+    RPARENT         reduce using rule 12 (SimpleCond -> TCNAME CompareOp Value .)
+
+
+state 32
+
+    (19) Value -> CONSTANT .
+
+    AND             reduce using rule 19 (Value -> CONSTANT .)
+    OR              reduce using rule 19 (Value -> CONSTANT .)
+    $end            reduce using rule 19 (Value -> CONSTANT .)
+    RPARENT         reduce using rule 19 (Value -> CONSTANT .)
+
+
+state 33
+
+    (20) Value -> STRING_CONST .
+
+    AND             reduce using rule 20 (Value -> STRING_CONST .)
+    OR              reduce using rule 20 (Value -> STRING_CONST .)
+    $end            reduce using rule 20 (Value -> STRING_CONST .)
+    RPARENT         reduce using rule 20 (Value -> STRING_CONST .)
 
