@@ -367,12 +367,9 @@ class Storage(object):
 # The following functions are implemented by the student.
 # ----------------------------------------
 
+    # Fei Yuan: 更新记录中指定字段的值.该函数实现了按字段值更新记录的功能，支持所有数据类型(STRING, VARSTRING, INTEGER, BOOLEAN)。会对字段类型进行验证并进行相应的类型转换。
     def update_record(self, field_name, old_value, new_value):
-        """更新记录中指定字段的值
-        
-        该函数实现了按字段值更新记录的功能，支持所有数据类型(STRING, VARSTRING, INTEGER, BOOLEAN)。
-        会对字段类型进行验证并进行相应的类型转换。
-        
+        """
         Args:
             field_name (str): 要更新的字段名
             old_value (str): 要更新的字段当前值
@@ -430,10 +427,10 @@ class Storage(object):
         except Exception as e:
             print(f"Error updating record: {str(e)}")
 
+    # Fei Yuan: 将当前记录列表写入文件，动态计算块大小和记录分布。
     def write_block_to_file(self):
-        """将数据块写入文件
-        
-        实现了高效的数据块管理和写入机制。主要功能：
+        """
+        主要功能：
         1. 动态计算并优化块大小和记录分布
         2. 实现多块数据存储
         3. 处理数据块边界问题
@@ -518,10 +515,9 @@ class Storage(object):
         except Exception as e:
             print(f"Error writing to file: {str(e)}")
 
-
+    # Yuan Fei: 删除符合条件的记录
     def del_one_record(self, field_name, field_value, field_list):
-        """删除符合条件的记录
-        
+        """
         根据指定字段名和字段值删除匹配的记录。支持所有数据类型的字段匹配，
         并确保类型安全的比较操作。
         
