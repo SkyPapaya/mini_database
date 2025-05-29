@@ -43,6 +43,7 @@ def main():
 
     while True:
 
+        # Fei Yuan: The following code is to process the user's choice
         if choice == '1':  # add a new table and lines of data
             tableName = input('please enter your new table name:')
             if isinstance(tableName, str):
@@ -222,11 +223,9 @@ def main():
             print('#----------------------------------------------------#')
             choice = input(PROMPT_STR)
 
-
+        # Fei Yuan: 根据指定的字段名和关键字值删除表中匹配的记录。
         elif choice == '6':
             """删除记录功能
-
-            根据指定的字段名和关键字值删除表中匹配的记录。
             支持所有数据类型(STRING, VARSTRING, INTEGER, BOOLEAN)的字段匹配。
             """
             try:
@@ -273,10 +272,9 @@ def main():
 
             choice = input(PROMPT_STR)
 
+        # Fei Yuan: 先显示所有记录并选择要修改的记录，然后选择要修改的字段并更新其值。
         elif choice == '7':
             """更新记录功能
-
-            先显示所有记录并选择要修改的记录，然后选择要修改的字段并更新其值。
             支持所有数据类型的字段更新，包括：
             - STRING (0)
             - VARSTRING (1)

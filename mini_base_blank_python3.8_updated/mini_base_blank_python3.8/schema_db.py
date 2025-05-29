@@ -88,17 +88,12 @@ class Schema(object):
         print ('execute Done!')
 
     #------------------------
+    # Fei Yuan
     # to show the schema of given table
     # input
     #       table_name
     #------------------------------
     def viewTableStructure(self, table_name):
-        """
-        Implemented by student
-        显示指定表的结构
-        Args:
-            table_name: 表名
-        """
         print ('viewtableStructure begin to execute')
         for table in self.headObj.tableNames:
             if table[0].strip() == table_name.strip():
