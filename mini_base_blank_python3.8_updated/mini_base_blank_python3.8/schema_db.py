@@ -337,30 +337,74 @@ class Schema(object):
     #       True or False
     # ------------------------------------------------   
 
+    # def WriteBuff(self):
+    #     bufLen = META_HEAD_SIZE + TABLE_NAME_HEAD_SIZE + MAX_FIELD_SECTION_SIZE  # the length of metahead, table name entries and feildName sections
+    #     buf = ctypes.create_string_buffer(bufLen)
+    #     struct.pack_into('!?ii', buf, 0, self.headObj.isStored, self.headObj.lenOfTableNum, self.headObj.offsetOfBody)
+    #     #isStored, tempTableNum, tempOffset = struct.unpack_from('!?ii', buf,0)  # link:https://docs.python.org/2/library/struct.html
+    #     #print isStored,tempTableNum,tempOffset
+    #     for idx in range(len(self.headObj.tableNames)):
+    #         tmp_tableName = self.headObj.tableNames[idx][0]
+    #         if len(tmp_tableName)<10:
+    #             tmp_tableName_str = tmp_tableName.decode('utf-8')
+    #             tmp_tableName = ' ' * (10 - len(tmp_tableName_str.strip())) + tmp_tableName_str
+    #             tmp_tableName = tmp_tableName.encode('utf-8')
+
+    #         # write (tablename,numberoffields,offsetinbody) to buffer
+    #         struct.pack_into('!10sii', buf, META_HEAD_SIZE + idx * TABLE_NAME_ENTRY_LEN, tmp_tableName,
+    #                          self.headObj.tableNames[idx][1],self.headObj.tableNames[idx][2])
+
+    #         # write the field information of each table into the buffer
+    #         for idj in range(self.headObj.tableNames[idx][1]):
+    #             (tempFieldName,tempFieldType,tempFieldLength)=self.headObj.tableFields[idx][idj]                
+    #             struct.pack_into('!10sii',buf,self.headObj.tableNames[idx][2]+idj*MAX_FIELD_LEN,
+    #                             tempFieldName,tempFieldType,tempFieldLength)
+    
+    #     self.fileObj.seek(0)
+    #     self.fileObj.write(buf)
+    #     self.fileObj.flush()
+
+    # Fei Yuan: 修复bug，不能用数字索引访问字典
     def WriteBuff(self):
-        bufLen = META_HEAD_SIZE + TABLE_NAME_HEAD_SIZE + MAX_FIELD_SECTION_SIZE  # the length of metahead, table name entries and feildName sections
+        bufLen = META_HEAD_SIZE + TABLE_NAME_HEAD_SIZE + MAX_FIELD_SECTION_SIZE
         buf = ctypes.create_string_buffer(bufLen)
-        struct.pack_into('!?ii', buf, 0, self.headObj.isStored, self.headObj.lenOfTableNum, self.headObj.offsetOfBody)
-        #isStored, tempTableNum, tempOffset = struct.unpack_from('!?ii', buf,0)  # link:https://docs.python.org/2/library/struct.html
-        #print isStored,tempTableNum,tempOffset
+    
+        # 写入头部信息
+        struct.pack_into('!?ii', buf, 0, self.headObj.isStored, 
+                    self.headObj.lenOfTableNum, self.headObj.offsetOfBody)
+    
         for idx in range(len(self.headObj.tableNames)):
-            tmp_tableName = self.headObj.tableNames[idx][0]
-            if len(tmp_tableName)<10:
-                tmp_tableName = ' ' * (10 - len(tmp_tableName.strip())) + tmp_tableName
-
-            # write (tablename,numberoffields,offsetinbody) to buffer
-            struct.pack_into('!10sii', buf, META_HEAD_SIZE + idx * TABLE_NAME_ENTRY_LEN, tmp_tableName,
-                             self.headObj.tableNames[idx][1],self.headObj.tableNames[idx][2])
-
-            # write the field information of each table into the buffer
-            for idj in range(self.headObj.tableNames[idx][1]):
-                (tempFieldName,tempFieldType,tempFieldLength)=self.headObj.tableFields[idx][idj]                
-                struct.pack_into('!10sii',buf,self.headObj.tableNames[idx][2]+idj*MAX_FIELD_LEN,
-                                tempFieldName,tempFieldType,tempFieldLength)
+            # 获取当前表信息
+            current_table = self.headObj.tableNames[idx]
+            table_name = current_table[0]
+        
+            # 处理表名填充
+            if len(table_name) < 10:
+                table_name_str = table_name.decode('utf-8')
+                table_name = ' ' * (10 - len(table_name_str.strip())) + table_name_str
+                table_name = table_name.encode('utf-8')
+            
+            # 写入表名信息
+            struct.pack_into('!10sii', buf, META_HEAD_SIZE + idx * TABLE_NAME_ENTRY_LEN,
+                        table_name, current_table[1], current_table[2])
+        
+            # 写入字段信息
+            # 使用表名作为键来访问tableFields
+            fields = self.headObj.tableFields[current_table[0].strip()]
+            for field_idx, field in enumerate(fields):
+                tempFieldName, tempFieldType, tempFieldLength = field
+                if isinstance(tempFieldName, str):
+                    tempFieldName = tempFieldName.encode('utf-8')
+                struct.pack_into('!10sii', buf, 
+                           current_table[2] + field_idx * MAX_FIELD_LEN,
+                           tempFieldName, tempFieldType, tempFieldLength)
+    
+        # 写入文件
         self.fileObj.seek(0)
         self.fileObj.write(buf)
         self.fileObj.flush()
 
+        
     # ----------------------------------------------
     # to delete the schema of a table from the schema file
     # input
