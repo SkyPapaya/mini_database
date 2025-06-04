@@ -369,63 +369,77 @@ class Storage(object):
 
     # Fei Yuan: 更新记录中指定字段的值.该函数实现了按字段值更新记录的功能，支持所有数据类型(STRING, VARSTRING, INTEGER, BOOLEAN)。会对字段类型进行验证并进行相应的类型转换。
     def update_record(self, field_name, old_value, new_value):
-        """
-        Args:
-            field_name (str): 要更新的字段名
-            old_value (str): 要更新的字段当前值
-            new_value (str): 字段的新值
-        
-        Returns:
-            None
-            
-        Raises:
-            ValueError: 当字段不存在或值格式不匹配时抛出
-        """
         try:
             # 1. 查找字段索引和类型
             field_index = -1
+            field_type = None
+            field_length = None
+            
             for i, field_info in enumerate(self.field_name_list):
-                # 确保字段名比较时格式一致
-                if field_info[0].strip() == field_name.ljust(10).encode('utf-8').strip():
+                current_field_name = field_info[0].decode('utf-8').strip()
+                if current_field_name == field_name:
                     field_index = i
-                    field_type = field_info[1]  # 获取字段类型
+                    field_type = field_info[1]
+                    field_length = field_info[2]
                     break
-                
+                    
             if field_index == -1:
                 raise ValueError(f"Field '{field_name}' not found in table")
-                
-            # 2. 根据字段类型进行值转换
-            if field_type == 2:  # INTEGER类型
+
+            # 2. 根据字段类型处理值
+            if field_type == 2:  # INTEGER
                 try:
                     old_value = int(old_value)
                     new_value = int(new_value)
                 except ValueError:
                     raise ValueError("Invalid integer format")
-            elif field_type == 3:  # BOOLEAN类型
+                    
+            elif field_type == 3:  # BOOLEAN
                 old_value = old_value.lower() in ('true', '1', 'yes')
                 new_value = new_value.lower() in ('true', '1', 'yes')
-            else:  # STRING或VARSTRING类型
-                old_value = old_value.encode('utf-8')
-                new_value = new_value.encode('utf-8')
                 
+            else:  # STRING 或 VARSTRING
+                # 检查新值长度
+                if len(new_value) > field_length:
+                    raise ValueError(f"New value exceeds maximum length of {field_length}")
+                    
             # 3. 更新匹配的记录
             updated = False
             for i in range(len(self.record_list)):
-                record = list(self.record_list[i])  # 转换为列表以便修改
-                if record[field_index] == old_value:
-                    record[field_index] = new_value
-                    self.record_list[i] = tuple(record)  # 转回元组
-                    updated = True
-                    
+                record = list(self.record_list[i])
+                current_value = record[field_index]
+                
+                # 字符串类型的特殊处理
+                if field_type in [0, 1]:  # STRING 或 VARSTRING
+                    if isinstance(current_value, bytes):
+                        current_value = current_value.decode('utf-8').strip()
+                    if isinstance(old_value, bytes):
+                        old_value = old_value.decode('utf-8').strip()
+                        
+                    # 字符串比较
+                    if current_value == old_value:
+                        # 确保新值符合长度要求
+                        padded_new_value = new_value.ljust(field_length)
+                        record[field_index] = padded_new_value
+                        self.record_list[i] = tuple(record)
+                        updated = True
+                        
+                else:  # INTEGER 或 BOOLEAN
+                    if current_value == old_value:
+                        record[field_index] = new_value
+                        self.record_list[i] = tuple(record)
+                        updated = True
+                        
             # 4. 处理更新结果
             if updated:
-                self.write_block_to_file()  # 将更新后的记录写入文件
+                self.write_block_to_file()
                 print(f"Successfully updated records where {field_name}='{old_value}' to '{new_value}'")
             else:
                 print(f"No records found with {field_name}='{old_value}'")
                 
         except Exception as e:
-            print(f"Error updating record: {str(e)}")
+             print(f"Error updating record: {str(e)}")
+    
 
     # Fei Yuan: 将当前记录列表写入文件，动态计算块大小和记录分布。
     def write_block_to_file(self):
