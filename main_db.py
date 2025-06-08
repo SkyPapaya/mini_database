@@ -22,10 +22,13 @@ import lex_db  # for lex, where data is stored in binary format
 import parser_db  # for yacc, where ddata is tored in binary format
 import common_db  # the global variables, functions, constants in the program
 import query_plan_db  # construct the query plan and execute it # Haomin Wang: Ensured this is present
+import transaction_db
+from transaction_db import global_transaction_manager
 
 PROMPT_STR = 'Input your choice  \n1:add a new table structure and data \n2:delete a table structure and data\
 \n3:view a table structure and data \n4:delete all tables and data \n5:select from where clause\
-\n6:delete a row according to field keyword \n7:update a row according to field keyword \n. to quit):\n'
+\n6:delete a row according to field keyword \n7:update a row according to field keyword \n8:transaction management\
+\n. to quit):\n'
 
 
 # --------------------------
@@ -39,6 +42,7 @@ def main():
 
     schemaObj = schema_db.Schema()  # to create a schema object, which contains the schema of all tables
     dataObj = None
+    current_transaction_id = None
     choice = input(PROMPT_STR)
 
     while True:
@@ -48,17 +52,19 @@ def main():
             tableName = input('please enter your new table name:')
             if isinstance(tableName, str):
                 tableName = tableName.encode('utf-8')
-            #  tableName not in all.sch
+            
             insertFieldList = []
             if tableName.strip() not in schemaObj.get_table_name_list():
                 # Create a new table
                 dataObj = storage_db.Storage(tableName)
-
                 insertFieldList = dataObj.getFieldList()
-
-                schemaObj.appendTable(tableName, insertFieldList)  # add the table structure
+                schemaObj.appendTable(tableName, insertFieldList)
             else:
                 dataObj = storage_db.Storage(tableName)
+
+                # Set current transaction for storage object if we have one
+                if current_transaction_id:
+                    dataObj.set_transaction(current_transaction_id)
 
                 # implemented by the student.
                 # 实现向已存在表中添加记录的功能
@@ -297,7 +303,7 @@ def main():
 
                         if not records:
                             print("Table is empty!")
-                            continue  # Haomin Wang: Changed from 'continue' to 'break' if in a loop, or adjust logic. Assuming 'continue' skips to next PROMPT_STR
+                            continue
 
                         # 3. 显示所有记录
                         print("\nCurrent records in table:")
@@ -370,9 +376,50 @@ def main():
 
             choice = input(PROMPT_STR)
 
-
+        elif choice == '8':  # transaction management
+            print("\n=== Transaction Management ===")
+            trans_choice = input("1: Begin Transaction\n2: Commit Transaction\n3: Abort Transaction\n4: Show Transaction Status\nChoice: ")
+            
+            if trans_choice == '1':
+                if current_transaction_id:
+                    print(f"Transaction {current_transaction_id} is already active. Commit or abort it first.")
+                else:
+                    current_transaction_id = global_transaction_manager.begin_transaction()
+                    print(f"Started transaction {current_transaction_id}")
+            
+            elif trans_choice == '2':
+                if current_transaction_id:
+                    if global_transaction_manager.commit_transaction(current_transaction_id):
+                        print(f"Transaction {current_transaction_id} committed successfully")
+                        current_transaction_id = None
+                    else:
+                        print("Failed to commit transaction")
+                else:
+                    print("No active transaction to commit")
+            
+            elif trans_choice == '3':
+                if current_transaction_id:
+                    if global_transaction_manager.abort_transaction(current_transaction_id):
+                        print(f"Transaction {current_transaction_id} aborted")
+                        current_transaction_id = None
+                    else:
+                        print("Failed to abort transaction")
+                else:
+                    print("No active transaction to abort")
+            
+            elif trans_choice == '4':
+                print(f"Current transaction: {current_transaction_id}")
+                print(f"Active transactions: {global_transaction_manager.get_active_transactions()}")
+                print(f"Committed transactions: {global_transaction_manager.get_committed_transactions()}")
+            
+            choice = input(PROMPT_STR)
 
         elif choice == '.':
+            # Cleanup: abort any active transaction before exiting
+            if current_transaction_id:
+                print(f"Aborting active transaction {current_transaction_id} before exit")
+                global_transaction_manager.abort_transaction(current_transaction_id)
+            
             print('Main loop finishes')
             if schemaObj:  # Haomin Wang: Added check before deleting
                 del schemaObj
